@@ -12,7 +12,8 @@ from src.molecule_builder import get_bond_order
 
 
 def save_xyz_file(path, one_hot, positions, node_mask, names, is_geom, suffix=''):
-    idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    # idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    idx2atom = const.RNA_IDX2ATOM
 
     for batch_i in range(one_hot.size(0)):
         mask = node_mask[batch_i].squeeze()
@@ -41,8 +42,10 @@ def load_xyz_files(path, suffix=''):
 
 
 def load_molecule_xyz(file, is_geom):
-    atom2idx = const.GEOM_ATOM2IDX if is_geom else const.ATOM2IDX
-    idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    # atom2idx = const.GEOM_ATOM2IDX if is_geom else const.ATOM2IDX
+    # idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    atom2idx = const.RNA_ATOM2IDX
+    idx2atom = const.RNA_IDX2ATOM
     with open(file, encoding='utf8') as f:
         n_atoms = int(f.readline())
         one_hot = torch.zeros(n_atoms, len(idx2atom))
@@ -75,7 +78,8 @@ def plot_molecule(ax, positions, atom_type, alpha, spheres_3d, hex_bg_color, is_
     z = positions[:, 2]
     # Hydrogen, Carbon, Nitrogen, Oxygen, Flourine
 
-    idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    # idx2atom = const.GEOM_IDX2ATOM if is_geom else const.IDX2ATOM
+    idx2atom = const.RNA_IDX2ATOM
 
     colors_dic = np.array(const.COLORS)
     radius_dic = np.array(const.RADII)

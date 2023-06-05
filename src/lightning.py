@@ -9,7 +9,7 @@ from src.const import LINKER_SIZE_DIST
 from src.egnn import Dynamics, DynamicsWithPockets
 from src.edm import EDM, InpaintingEDM
 from src.datasets import (
-    ZincDataset, MOADDataset, create_templates_for_linker_generation, get_dataloader, collate
+    RNADataset, ZincDataset, MOADDataset, create_templates_for_linker_generation, get_dataloader, collate
 )
 from src.linker_size import DistributionNodes
 from src.molecule_builder import build_molecules
@@ -109,7 +109,8 @@ class DDPM(pl.LightningModule):
         self.linker_size_sampler = DistributionNodes(LINKER_SIZE_DIST)
 
     def setup(self, stage: Optional[str] = None):
-        dataset_type = MOADDataset if '.' in self.train_data_prefix else ZincDataset
+        # dataset_type = MOADDataset if '.' in self.train_data_prefix else 
+        dataset_type = RNADataset
         if stage == 'fit':
             self.is_geom = ('geom' in self.train_data_prefix) or ('MOAD' in self.train_data_prefix)
             self.train_dataset = dataset_type(
@@ -299,8 +300,8 @@ class DDPM(pl.LightningModule):
                 self.log(f'{metric_name}/test', metric_value, prog_bar=True)
                 self.metrics.setdefault(f'{metric_name}/test', []).append(metric_value)
 
-    def generate_animation(self, chain_batch, node_mask, batch_i):
-        batch_indices, mol_indices = utils.get_batch_idx_for_animation(self.batch_size, batch_i)
+    def generate_animation(self, chain_batch, node_mask, batch_i, indeces=[0, 110, 360]):
+        batch_indices, mol_indices = utils.get_batch_idx_for_animation(self.batch_size, batch_i, indeces=indeces)
         for bi, mi in zip(batch_indices, mol_indices):
             chain = chain_batch[:, bi, :, :]
             name = f'mol_{mi}'
@@ -313,7 +314,7 @@ class DDPM(pl.LightningModule):
             names = [f'{name}_{j}' for j in range(self.FRAMES)]
 
             save_xyz_file(chain_output, one_hot, positions, chain_node_mask, names=names, is_geom=self.is_geom)
-            visualize_chain(chain_output, wandb=wandb, mode=name, is_geom=self.is_geom)
+            visualize_chain(chain_output, wandb=None, mode=name, is_geom=self.is_geom)
 
     def sample_and_analyze(self, dataloader):
         pred_molecules = []
@@ -381,7 +382,7 @@ class DDPM(pl.LightningModule):
 
                 # Generate animation – will always do it for molecules with idx 0, 110 and 360
                 if self.samples_dir is not None and sample_idx == 0:
-                    self.generate_animation(chain_batch=chain_batch, node_mask=node_mask, batch_i=b)
+                    self.generate_animation(chain_batch=chain_batch, node_mask=node_mask, batch_i=b, indeces=[0])
 
         # Our own & DeLinker metrics
         our_metrics = metrics.compute_metrics(

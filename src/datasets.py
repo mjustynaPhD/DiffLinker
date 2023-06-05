@@ -37,6 +37,21 @@ def parse_molecule(mol, is_geom):
     return positions, np.array(one_hot), np.array(charges)
 
 
+class RNADataset(Dataset):
+    def __init__(self, data_path, prefix, device) -> None:
+        dataset_path = os.path.join(data_path, f'{prefix}.pt')
+        if os.path.exists(dataset_path):
+            self.data = torch.load(dataset_path, map_location=device)
+        else:
+            raise NotImplementedError
+
+    def __len__(self) -> int:
+        return len(self.data)
+    
+    def __getitem__(self, index: int):
+        return self.data[index]
+
+
 class ZincDataset(Dataset):
     def __init__(self, data_path, prefix, device):
         dataset_path = os.path.join(data_path, f'{prefix}.pt')
