@@ -7,7 +7,7 @@ import yaml
 from datetime import datetime
 from pytorch_lightning import Trainer, callbacks, loggers
 
-from src.const import NUMBER_OF_ATOM_TYPES, GEOM_NUMBER_OF_ATOM_TYPES
+from src.const import NUMBER_OF_ATOM_TYPES, GEOM_NUMBER_OF_ATOM_TYPES, NUMBER_OF_RNA_ATOM_TYPES
 from src.lightning import DDPM
 from src.utils import disable_rdkit_logging, Logger
 
@@ -37,17 +37,19 @@ def main(args):
     samples_dir = os.path.join(args.logs, 'samples', experiment)
 
     torch_device = 'cuda:0' if args.device == 'gpu' else 'cpu'
-    wandb_logger = loggers.WandbLogger(
-        save_dir=args.logs,
-        project='e3_ddpm_linker_design',
-        name=experiment,
-        id=experiment,
-        resume='must' if args.resume is not None else 'allow',
-        entity=args.wandb_entity,
-    )
+    # wandb_logger = loggers.WandbLogger(
+    #     save_dir=args.logs,
+    #     project='e3_ddpm_linker_design',
+    #     name=experiment,
+    #     id=experiment,
+    #     resume='must' if args.resume is not None else 'allow',
+    #     entity=args.wandb_entity,
+    # )
 
     is_geom = ('geom' in args.train_data_prefix) or ('MOAD' in args.train_data_prefix)
-    number_of_atoms = GEOM_NUMBER_OF_ATOM_TYPES if is_geom else NUMBER_OF_ATOM_TYPES
+    # number_of_atoms = GEOM_NUMBER_OF_ATOM_TYPES if is_geom else NUMBER_OF_ATOM_TYPES
+    number_of_atoms = NUMBER_OF_RNA_ATOM_TYPES
+
     in_node_nf = number_of_atoms + args.include_charges
     anchors_context = not args.remove_anchors_context
     context_node_nf = 2 if anchors_context else 1
@@ -99,7 +101,7 @@ def main(args):
     )
     trainer = Trainer(
         max_epochs=args.n_epochs,
-        logger=wandb_logger,
+        logger=None, #wandb_logger,
         callbacks=checkpoint_callback,
         accelerator=args.device,
         devices=1,
