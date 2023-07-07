@@ -10,15 +10,19 @@ from Bio.PDB import *
 from Bio.SVDSuperimposer import SVDSuperimposer
 from rnapolis.annotator import extract_secondary_structure
 from rnapolis.parser import read_3d_structure
+import sys
+sys.path.append('../../')
+from src.visualizer import save_xyz_file
 
 pdbs_dir = "/data/3d/input_data/pdbs/"
-out_name = 'rna_GC_train.pt'
+out_name = 'rna_GC_val.pt'
 ONE_HOT = {'P': 3, 'H': 4, 'C': 0, 'O': 2, 'N': 1}
+save_vis = True
 
 def main():
     # read 3d structure
     all_transformed = []
-    for pdb in tqdm(os.listdir(pdbs_dir)[:10]):
+    for pdb in tqdm(os.listdir(pdbs_dir)[1000:1001]):
         pdb_path = os.path.join(pdbs_dir, pdb)
         # print(f"Structure extraction from pdb file {pdb}")
         with open(pdb_path) as f:
@@ -29,7 +33,8 @@ def main():
         interest_bps = []
         for bp in structure2d.basePairs:
             bp_type = bp.saenger.is_canonical if bp.saenger is not None else False
-            if bp_type and bp.nt1.name == 'C' and bp.nt2.name == 'G':
+            if bp_type and (bp.nt1.name == 'C' and bp.nt2.name == 'G'):
+                        # or (bp.nt1.name == 'G' and bp.nt2.name == 'C'):
                 # print(f"{bp.nt1.chain}.{bp.nt1.name}{bp.nt1.number}")
                 # print(f"{bp.nt2.chain}.{bp.nt2.name}{bp.nt2.number}")
                 bp1 = f"{bp.nt1.chain}.{bp.nt1.name}{bp.nt1.number}"
@@ -71,16 +76,33 @@ def main():
                 print(f"KeyError: {pdb} {bps[0]} {bps[1]}")
                 raise
             
-            # if len(all_transformed) >2:
-            #     try:
-            #         superimposed = superimpose(all_transformed[0]['positions'], all_transformed[-1]['positions'])
-            #         all_transformed[-1]['positions'] = superimposed
-            #     except Exception as e:
-            #         print("Error in superimpose")
-            #         all_transformed.pop()
+            if len(all_transformed) >2:
+                try:
+                    superimposed, rmsd = superimpose(all_transformed[0]['positions'], all_transformed[-1]['positions'])
+                    if rmsd > 1.5:
+                        print(all_transformed[0]['name'], all_transformed[-1]['name'], rmsd)
+                        raise ValueError("RMSD of alignment is too high!")
+                    all_transformed[-1]['positions'] = superimposed
+                except ValueError as e:
+                    print(e, " skipping...")
+                    all_transformed.pop()
+                except Exception as e:
+                    print("Error in superimpose")
+                    all_transformed.pop()
+
+    # save xyz samples
+    if save_vis:
+        for i, sample in enumerate(all_transformed):
+                save_xyz_file(
+                    f"xyz/",
+                    sample["one_hot"].unsqueeze(0),
+                    sample["positions"].unsqueeze(0),
+                    node_mask=torch.ones(len(sample["one_hot"])).unsqueeze(0),
+                    names = [f'{sample["name"]}'],
+                    is_geom=None
+                )
 
     # save transformed to *.pt file
-    
     torch.save(all_transformed, out_name)
     print(f"Saved {out_name}")
 
@@ -123,7 +145,7 @@ def superimpose(ref_coords, model_coords):
     sup.set(np.array(ref_coords, 'f'), np.array(model_coords, 'f'))
     sup.run()
     print('RMSD: {:.2f}'.format(sup.get_rms()))
-    return torch.Tensor(sup.get_transformed())
+    return torch.Tensor(sup.get_transformed()), sup.get_rms()
 
 def get_positions(residues):
     positions = []

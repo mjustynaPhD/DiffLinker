@@ -3,3 +3,8 @@ models
 trajectories
 logs
 formatted
+samples/
+*.pdb
+*.pt
+*.xyz
+__pycache__
