@@ -7,6 +7,28 @@
     "envFile": "${workspaceFolder}/.env",
     "configurations": [
         {
+            "name": "ZINC",
+            "type": "python",
+            "request": "launch",
+            "program": "data/zinc/prepare_dataset.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": [
+                "--sdf",
+                "data/zinc/smiles/_0.sdf",
+                "--table",
+                "data/zinc/table.txt"
+                "--out-mol-sdf",
+                "data/zinc/out_mol.sdf",
+                "--out-frag-sdf",
+                "data/zinc/out_frag.sdf",
+                "--out-link-sdf",
+                "data/zinc/out_link.sdf",
+                "--out-table"
+                "data/zinc/out_table.txt",
+            ] 
+        },
+        {
             "name": "SDF",
             "type": "python",
             "request": "launch",
@@ -15,9 +37,9 @@
             "justMyCode": true,
             "args": [
                 "--sdf_path",
-                "data/rna/1A9N.sdf",
+                "data/zinc/smiles/_0.sdf",
                 "--output_path",
-                "data/rna/out.csv",
+                "data/zinc/out.csv",
                 "--verbose",
                 "--no_filters"
             ] 
@@ -31,9 +53,7 @@
             "justMyCode": true,
             "args": [
                 "--config",
-                "configs/rna_difflinker.yml",
-                "--n_epochs",
-                "1"
+                "configs/rna_difflinker_dev.yml"
             ]
         },
         {
@@ -45,15 +65,15 @@
             "justMyCode": true,
             "args": [
                 "--checkpoint",
-                "models/rna_difflinker.ckpt",
+                "models/rna_difflinker_2840.ckpt",
                 "--samples",
                 "samples",
                 "--data",
                 "datasets",
                 "--prefix",
-                "rna_v1_train",
+                "rna_GC_train",
                 "--n_samples",
-                "2",
+                "5",
                 "--device",
                 "cuda:0",
             ]

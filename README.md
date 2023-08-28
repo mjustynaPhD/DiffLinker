@@ -266,3 +266,8 @@ All the metrics will be saved in the directory `./formatted`.
 If you have any questions, please contact me at ilia.igashov@epfl.ch
 
 
+# Q: How to convert pdb files to sdf ans smi (smiles) format?
+# A: Use openbabel
+# 1. Install openbabel
+# 2. Convert pdb to sdf
+obabel -ipdb 1a1e.pdb -osdf -O 1a1e.sdf

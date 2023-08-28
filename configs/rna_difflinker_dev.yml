@@ -1,7 +1,7 @@
 exp_name: 'RNA_difflinker'
 data: datasets
-train_data_prefix: rna_GC_train_2nt
-val_data_prefix: rna_GC_val_2nt
+train_data_prefix: rna_GC_train100
+val_data_prefix: rna_GC_val100
 checkpoints: models
 logs: logs
 device: gpu
@@ -13,8 +13,8 @@ model: egnn_dynamics
 lr: 2.0e-4
 batch_size: 16
 n_layers: 8
-n_epochs: 3000
-test_epochs: 20
+n_epochs: 1
+test_epochs: 1
 n_stability_samples: 10
 nf: 128
 activation: silu
@@ -35,4 +35,4 @@ normalize_factors: [1, 4, 10]
 aggregation_method: 'sum'
 normalization: batch_norm
 
-resume: 
+resume:
